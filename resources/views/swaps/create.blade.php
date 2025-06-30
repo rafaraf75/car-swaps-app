@@ -1,0 +1,93 @@
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+            Dodaj nowy swap
+        </h2>
+    </x-slot>
+
+    <div class="py-12">
+        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
+
+                @if ($errors->any())
+                    <div class="mb-4 text-red-500">
+                        <ul class="list-disc list-inside">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                <form method="POST" action="{{ route('swaps.store') }}">
+                    @csrf
+
+                    <div class="mb-4">
+                        <x-input-label for="car_model_id" value="Model samochodu" />
+                        <select name="car_model_id" id="car_model_id" required class="block mt-1 w-full rounded-md border-gray-300 dark:bg-gray-700 dark:text-gray-200">
+                            <option value="">-- Wybierz model --</option>
+                            @foreach ($carModels as $model)
+                                <option value="{{ $model->id }}">{{ $model->brand }} {{ $model->model }} ({{ $model->year_start }})</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="mb-6">
+                        <x-input-label value="Silniki do swapa (możesz wybrać kilka)" />
+                        <div class="space-y-4">
+                            @foreach ($engines as $engine)
+                                <div class="p-4 border rounded-md bg-gray-700 text-white">
+                                    <label class="flex items-center space-x-2">
+                                        <input type="checkbox" class="engine-toggle" data-engine-id="{{ $engine->id }}"
+                                               name="engines[{{ $engine->id }}][selected]" value="1">
+                                        <span>{{ $engine->code }} – {{ $engine->capacity }}L {{ $engine->fuel_type }}</span>
+                                    </label>
+
+                                    <div id="engine-fields-{{ $engine->id }}" class="mt-2 hidden">
+                                        <label for="engines_{{ $engine->id }}_note" class="block text-sm text-white mt-2">Notatka:</label>
+                                        <textarea name="engines[{{ $engine->id }}][note]" id="engines_{{ $engine->id }}_note" rows="2"
+                                            class="w-full mt-1 rounded-md dark:bg-gray-800 border-gray-600"></textarea>
+
+                                        <div class="mt-2">
+                                            <label class="block text-sm font-semibold text-white">Tagi:</label>
+                                            <div class="flex flex-wrap gap-4 mt-1">
+                                                @foreach ($allTags as $tag)
+                                                    <label class="inline-flex items-center text-white">
+                                                        <input type="checkbox"
+                                                            name="engines[{{ $engine->id }}][tags][{{ $tag->id }}]"
+                                                            value="1"
+                                                            class="form-checkbox text-blue-600">
+                                                        <span class="ml-2">{{ $tag->name }}</span>
+                                                    </label>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end">
+                        <a href="{{ route('swaps.index') }}" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 mr-2">Anuluj</a>
+                        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Zapisz</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    @push('scripts')
+    <script>
+        setTimeout(() => {
+            document.querySelectorAll('.engine-toggle').forEach(function (checkbox) {
+                checkbox.addEventListener('change', function () {
+                    const engineId = this.dataset.engineId;
+                    const fields = document.getElementById(`engine-fields-${engineId}`);
+                    if (fields) fields.classList.toggle('hidden', !this.checked);
+                });
+            });
+        }, 100);
+    </script>
+    @endpush
+</x-app-layout>
